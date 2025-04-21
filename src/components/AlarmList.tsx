@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { AlarmClock, Edit, Trash } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
 import { AlarmFormValues } from './AlarmForm';
+import { format } from 'date-fns';
 
-interface Alarm {
+export interface Alarm {
   id: string;
   time: string;
   enabled: boolean;
   label?: string;
-  days: string[];
+  nextRing: Date;
 }
 
 export type { Alarm };
@@ -47,20 +48,9 @@ const AlarmList = ({
                 {alarm.label && (
                   <p className="text-sm text-muted-foreground">{alarm.label}</p>
                 )}
-                <div className="flex gap-1 mt-1">
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-                    <span
-                      key={day}
-                      className={`text-xs px-1 rounded ${
-                        alarm.days.includes(day)
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary text-secondary-foreground'
-                      }`}
-                    >
-                      {day[0]}
-                    </span>
-                  ))}
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Rings at: {format(alarm.nextRing, 'PPp')}
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
@@ -82,13 +72,23 @@ const AlarmList = ({
   );
 };
 
-// Helper function to convert AlarmFormValues to Alarm
-export const createAlarm = (formValues: AlarmFormValues): Alarm => ({
-  id: uuidv4(),
-  time: formValues.time,
-  label: formValues.label,
-  days: formValues.days,
-  enabled: true
-});
+export const createAlarm = (formValues: AlarmFormValues): Alarm => {
+  const [hours, minutes] = formValues.time.split(':').map(Number);
+  const now = new Date();
+  let nextRing = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+  
+  // If the time has already passed today, set it for tomorrow
+  if (nextRing < now) {
+    nextRing.setDate(nextRing.getDate() + 1);
+  }
+
+  return {
+    id: uuidv4(),
+    time: formValues.time,
+    label: formValues.label,
+    enabled: true,
+    nextRing
+  };
+};
 
 export default AlarmList;
