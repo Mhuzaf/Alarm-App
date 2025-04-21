@@ -20,11 +20,21 @@ export default function Auth() {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            data: {
+              username: email.split('@')[0] // Optional: create a default username
+            }
+          }
+        });
+        
         if (error) throw error;
         toast.success("Check your email for the confirmation link!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
+        
         if (error) throw error;
         navigate("/");
       }
