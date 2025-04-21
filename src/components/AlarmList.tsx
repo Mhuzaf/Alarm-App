@@ -4,6 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { AlarmClock, Edit, Trash } from "lucide-react";
+import { v4 as uuidv4 } from 'uuid';
+import { AlarmFormValues } from './AlarmForm';
 
 interface Alarm {
   id: string;
@@ -13,19 +15,21 @@ interface Alarm {
   days: string[];
 }
 
-const AlarmList = () => {
-  const [alarms, setAlarms] = React.useState<Alarm[]>([]);
+export type { Alarm };
 
-  const toggleAlarm = (id: string) => {
-    setAlarms(alarms.map(alarm => 
-      alarm.id === id ? { ...alarm, enabled: !alarm.enabled } : alarm
-    ));
-  };
+interface AlarmListProps {
+  alarms: Alarm[];
+  onDeleteAlarm: (id: string) => void;
+  onToggleAlarm: (id: string) => void;
+  onEditAlarm: (id: string) => void;
+}
 
-  const deleteAlarm = (id: string) => {
-    setAlarms(alarms.filter(alarm => alarm.id !== id));
-  };
-
+const AlarmList = ({ 
+  alarms,
+  onDeleteAlarm,
+  onToggleAlarm,
+  onEditAlarm
+}: AlarmListProps) => {
   return (
     <div className="space-y-4">
       {alarms.length === 0 ? (
@@ -61,12 +65,12 @@ const AlarmList = () => {
               <div className="flex items-center gap-2">
                 <Switch
                   checked={alarm.enabled}
-                  onCheckedChange={() => toggleAlarm(alarm.id)}
+                  onCheckedChange={() => onToggleAlarm(alarm.id)}
                 />
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary" onClick={() => onEditAlarm(alarm.id)}>
                   <Edit className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => onDeleteAlarm(alarm.id)}>
                   <Trash className="h-4 w-4" />
                 </Button>
               </div>
@@ -77,5 +81,14 @@ const AlarmList = () => {
     </div>
   );
 };
+
+// Helper function to convert AlarmFormValues to Alarm
+export const createAlarm = (formValues: AlarmFormValues): Alarm => ({
+  id: uuidv4(),
+  time: formValues.time,
+  label: formValues.label,
+  days: formValues.days,
+  enabled: true
+});
 
 export default AlarmList;
