@@ -20,7 +20,7 @@ export default function Auth() {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ 
+        const { data, error } = await supabase.auth.signUp({ 
           email, 
           password,
           options: {
@@ -31,11 +31,22 @@ export default function Auth() {
         });
         
         if (error) throw error;
-        toast.success("Check your email for the confirmation link!");
+        
+        // Since email verification is disabled, we should have a session immediately
+        // Check if we have a session and redirect if we do
+        if (data.session) {
+          toast.success("Account created successfully!");
+          navigate("/");
+        } else {
+          // Fallback in case verification is still enabled
+          toast.success("Account created! You can now sign in.");
+          setIsSignUp(false); // Switch to sign in mode
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         
         if (error) throw error;
+        toast.success("Signed in successfully!");
         navigate("/");
       }
     } catch (error: any) {
