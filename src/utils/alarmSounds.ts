@@ -26,6 +26,26 @@ export const alarmSounds: AlarmSound[] = [
     name: 'Chime',
     file: '/sounds/chime-alarm.mp3',
   },
+  {
+    id: 'gentle',
+    name: 'Gentle Wake',
+    file: '/sounds/gentle-alarm.mp3',
+  },
+  {
+    id: 'nature',
+    name: 'Nature',
+    file: '/sounds/nature-alarm.mp3',
+  },
+  {
+    id: 'beep',
+    name: 'Classic Beep',
+    file: '/sounds/beep-alarm.mp3',
+  },
+  {
+    id: 'marimba',
+    name: 'Marimba',
+    file: '/sounds/marimba-alarm.mp3',
+  }
 ];
 
 // Global audio storage
