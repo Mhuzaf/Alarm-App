@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import AlarmList, { Alarm, createAlarm } from "@/components/AlarmList";
 import AddAlarmButton from "@/components/AddAlarmButton";
 import { AlarmFormValues } from "@/components/AlarmForm";
@@ -15,6 +15,7 @@ const Index = () => {
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const { user } = useAuthContext();
   const navigate = useNavigate();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleAddAlarm = (formValues: AlarmFormValues) => {
     const newAlarm = createAlarm(formValues);
@@ -190,20 +191,19 @@ const Index = () => {
   return (
     <div className="min-h-screen p-4 bg-background">
       <div className="max-w-md mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold flex items-center gap-2">
+        <div className="flex flex-col items-center mb-6 relative">
+          <Button 
+            variant="outline" 
+            onClick={user ? handleLogout : handleLogin}
+            className="absolute left-0 top-0"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            {user ? "Logout" : "Login"}
+          </Button>
+          
+          <h1 className="text-4xl font-bold flex items-center gap-2 mx-auto">
             <Bell className="h-8 w-8" /> Alarms
           </h1>
-          {user ? (
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-          ) : (
-            <Button variant="outline" onClick={handleLogin}>
-              Login
-            </Button>
-          )}
         </div>
 
         <AlarmList 

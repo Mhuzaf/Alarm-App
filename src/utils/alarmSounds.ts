@@ -35,10 +35,27 @@ export const playAlarmSound = (soundId: string = 'default'): void => {
   
   const sound = alarmSounds.find(s => s.id === soundId) || alarmSounds[0];
   audio = new Audio(sound.file);
+  
+  // Fix: Add proper error handling and ensure audio plays
   audio.loop = true;
-  audio.play().catch(error => {
-    console.error("Error playing alarm sound:", error);
-  });
+  
+  // Try to play the audio with user interaction consideration
+  const playPromise = audio.play();
+  
+  if (playPromise !== undefined) {
+    playPromise.catch(error => {
+      console.error("Error playing alarm sound:", error);
+      // Create a dummy audio element and try again after user interaction
+      const tempAudio = document.createElement('audio');
+      tempAudio.src = sound.file;
+      document.body.appendChild(tempAudio);
+      
+      // Try again with the new audio element
+      tempAudio.play().catch(e => 
+        console.error("Second attempt to play sound failed:", e)
+      );
+    });
+  }
 };
 
 export const stopAlarmSound = (): void => {
@@ -47,4 +64,13 @@ export const stopAlarmSound = (): void => {
     audio.currentTime = 0;
     audio = null;
   }
+  
+  // Also stop any other audio elements that might be playing
+  document.querySelectorAll('audio').forEach(el => {
+    el.pause();
+    el.currentTime = 0;
+    if (el.parentNode) {
+      el.parentNode.removeChild(el);
+    }
+  });
 };
