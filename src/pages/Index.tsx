@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import AlarmList, { Alarm, createAlarm } from "@/components/AlarmList";
 import AddAlarmButton from "@/components/AddAlarmButton";
@@ -52,7 +51,6 @@ const Index = () => {
   const handleEditAlarm = (id: string) => {
     const alarm = alarms.find(a => a.id === id);
     if (alarm) {
-      // Update the alarm's next ring time
       const [hours, minutes] = alarm.time.split(':').map(Number);
       const now = new Date();
       let nextRing = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
@@ -78,13 +76,11 @@ const Index = () => {
     if (!user) return;
     
     try {
-      // Convert dates to ISO strings for storage
       const alarmsToSave = alarms.map(alarm => ({
         ...alarm,
         nextRing: alarm.nextRing.toISOString(),
       }));
       
-      // Using upsert with the correct table name
       const { error } = await supabase
         .from('user_alarms')
         .upsert({ 
@@ -111,17 +107,15 @@ const Index = () => {
         .single();
         
       if (error) {
-        if (error.code !== 'PGRST116') { // Record not found error is expected for new users
+        if (error.code !== 'PGRST116') {
           throw error;
         }
         return;
       }
       
       if (data && data.alarms) {
-        // Make sure data.alarms is an array before trying to map through it
         const alarmsData = Array.isArray(data.alarms) ? data.alarms : [];
         
-        // Convert ISO date strings back to Date objects
         const loadedAlarms = alarmsData.map((alarm: any) => ({
           ...alarm,
           nextRing: new Date(alarm.nextRing)
@@ -155,7 +149,6 @@ const Index = () => {
       const now = new Date();
       alarms.forEach(alarm => {
         if (alarm.enabled && alarm.nextRing <= now) {
-          // Play the selected alarm sound
           playAlarmSound(alarm.soundId);
           
           toast.success(
@@ -176,7 +169,6 @@ const Index = () => {
             }
           );
           
-          // Update next ring time to tomorrow
           handleEditAlarm(alarm.id);
         }
       });
@@ -184,7 +176,7 @@ const Index = () => {
 
     return () => {
       clearInterval(checkAlarms);
-      stopAlarmSound();  // Clean up any playing sounds when component unmounts
+      stopAlarmSound();
     };
   }, [alarms]);
 
@@ -195,7 +187,7 @@ const Index = () => {
           <Button 
             variant="outline" 
             onClick={user ? handleLogout : handleLogin}
-            className="absolute left-0 top-0"
+            className="absolute right-0 top-0"
           >
             <LogOut className="h-4 w-4 mr-2" />
             {user ? "Logout" : "Login"}

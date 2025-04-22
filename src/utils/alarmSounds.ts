@@ -28,49 +28,76 @@ export const alarmSounds: AlarmSound[] = [
   },
 ];
 
-let audio: HTMLAudioElement | null = null;
+// Global audio elements storage
+let audioElements: HTMLAudioElement[] = [];
 
 export const playAlarmSound = (soundId: string = 'default'): void => {
+  // Stop any currently playing sounds
   stopAlarmSound();
   
   const sound = alarmSounds.find(s => s.id === soundId) || alarmSounds[0];
-  audio = new Audio(sound.file);
   
-  // Fix: Add proper error handling and ensure audio plays
-  audio.loop = true;
-  
-  // Try to play the audio with user interaction consideration
-  const playPromise = audio.play();
-  
-  if (playPromise !== undefined) {
-    playPromise.catch(error => {
-      console.error("Error playing alarm sound:", error);
-      // Create a dummy audio element and try again after user interaction
-      const tempAudio = document.createElement('audio');
-      tempAudio.src = sound.file;
-      document.body.appendChild(tempAudio);
+  try {
+    // Create multiple audio elements for redundancy
+    // This helps overcome browser autoplay restrictions
+    const audio1 = new Audio(sound.file);
+    const audio2 = document.createElement('audio');
+    audio2.src = sound.file;
+    document.body.appendChild(audio2);
+    
+    audioElements = [audio1, audio2];
+    
+    // Configure audio elements
+    audioElements.forEach(audio => {
+      audio.loop = true;
+      audio.volume = 1.0;
       
-      // Try again with the new audio element
-      tempAudio.play().catch(e => 
-        console.error("Second attempt to play sound failed:", e)
-      );
+      // Attempt to play with different methods
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error("Error playing alarm sound:", error);
+          
+          // Try again with user interaction in mind
+          document.addEventListener('click', function playOnClick() {
+            audio.play().catch(e => console.error("Even with interaction, play failed:", e));
+            document.removeEventListener('click', playOnClick);
+          }, { once: true });
+        });
+      }
+      
+      // Add success log to verify sound is playing
+      audio.onplaying = () => console.log(`Sound ${soundId} is now playing`);
     });
+  } catch (error) {
+    console.error("Critical error in playAlarmSound:", error);
   }
 };
 
 export const stopAlarmSound = (): void => {
-  if (audio) {
-    audio.pause();
-    audio.currentTime = 0;
-    audio = null;
+  try {
+    // Stop and clean up all audio elements we created
+    audioElements.forEach(audio => {
+      audio.pause();
+      audio.currentTime = 0;
+      if (audio.parentNode) {
+        audio.parentNode.removeChild(audio);
+      }
+    });
+    
+    // Clear the array
+    audioElements = [];
+    
+    // Also clean up any stray audio elements
+    document.querySelectorAll('audio').forEach(el => {
+      el.pause();
+      el.currentTime = 0;
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+  } catch (error) {
+    console.error("Error stopping sounds:", error);
   }
-  
-  // Also stop any other audio elements that might be playing
-  document.querySelectorAll('audio').forEach(el => {
-    el.pause();
-    el.currentTime = 0;
-    if (el.parentNode) {
-      el.parentNode.removeChild(el);
-    }
-  });
 };

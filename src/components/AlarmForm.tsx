@@ -14,7 +14,8 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { DrawerFooter } from "@/components/ui/drawer";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { alarmSounds } from "@/utils/alarmSounds";
+import { alarmSounds, playAlarmSound, stopAlarmSound } from "@/utils/alarmSounds";
+import { Volume2, VolumeX } from "lucide-react";
 
 interface AlarmFormProps {
   onSubmit: (data: AlarmFormValues) => void;
@@ -53,6 +54,9 @@ const AlarmForm = ({ onSubmit, onCancel, isMobile, defaultValues }: AlarmFormPro
     return defaultHours >= 12 ? 'PM' : 'AM';
   });
 
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentSound, setCurrentSound] = useState<string | null>(null);
+
   // Update time value when hours, minutes, or period changes
   const updateTimeValue = (newHours: number, newMinutes: number, newPeriod: string) => {
     let hours24 = newHours;
@@ -87,6 +91,29 @@ const AlarmForm = ({ onSubmit, onCancel, isMobile, defaultValues }: AlarmFormPro
     setPeriod(value);
     updateTimeValue(hours, minutes, value);
   };
+
+  // Handle sound preview
+  const handleSoundPreview = (soundId: string) => {
+    if (isPlaying && currentSound === soundId) {
+      stopAlarmSound();
+      setIsPlaying(false);
+      setCurrentSound(null);
+    } else {
+      if (isPlaying) {
+        stopAlarmSound();
+      }
+      playAlarmSound(soundId);
+      setIsPlaying(true);
+      setCurrentSound(soundId);
+    }
+  };
+
+  // Clean up sound preview when component unmounts
+  React.useEffect(() => {
+    return () => {
+      stopAlarmSound();
+    };
+  }, []);
 
   const Footer = isMobile ? DrawerFooter : DialogFooter;
 
@@ -156,23 +183,45 @@ const AlarmForm = ({ onSubmit, onCancel, isMobile, defaultValues }: AlarmFormPro
           render={({ field }) => (
             <FormItem>
               <FormLabel>Alarm Sound</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
+              <div className="flex items-center gap-2">
+                <FormControl className="flex-1">
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      // Stop previous sound if playing
+                      if (isPlaying) {
+                        stopAlarmSound();
+                        setIsPlaying(false);
+                        setCurrentSound(null);
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a sound" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {alarmSounds.map(sound => (
+                        <SelectItem key={sound.id} value={sound.id}>
+                          {sound.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => handleSoundPreview(field.value || 'default')}
+                  title={isPlaying && currentSound === field.value ? "Stop preview" : "Preview sound"}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a sound" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {alarmSounds.map(sound => (
-                      <SelectItem key={sound.id} value={sound.id}>
-                        {sound.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
+                  {isPlaying && currentSound === field.value ? 
+                    <VolumeX className="h-4 w-4" /> : 
+                    <Volume2 className="h-4 w-4" />
+                  }
+                </Button>
+              </div>
             </FormItem>
           )}
         />
