@@ -7,6 +7,7 @@ import { AlarmClock, Edit, Trash } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
 import { AlarmFormValues } from './AlarmForm';
 import { format } from 'date-fns';
+import { alarmSounds } from '@/utils/alarmSounds';
 
 export interface Alarm {
   id: string;
@@ -14,9 +15,8 @@ export interface Alarm {
   enabled: boolean;
   label?: string;
   nextRing: Date;
+  soundId: string;
 }
-
-export type { Alarm };
 
 interface AlarmListProps {
   alarms: Alarm[];
@@ -50,6 +50,9 @@ const AlarmList = ({
                 )}
                 <p className="text-xs text-muted-foreground">
                   Rings at: {format(alarm.nextRing, 'PPp')}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Sound: {alarmSounds.find(s => s.id === alarm.soundId)?.name || 'Default'}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -87,7 +90,8 @@ export const createAlarm = (formValues: AlarmFormValues): Alarm => {
     time: formValues.time,
     label: formValues.label,
     enabled: true,
-    nextRing
+    nextRing,
+    soundId: formValues.soundId || 'default'
   };
 };
 
