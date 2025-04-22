@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import AlarmList, { Alarm, createAlarm } from "@/components/AlarmList";
 import AddAlarmButton from "@/components/AddAlarmButton";
@@ -149,6 +150,7 @@ const Index = () => {
       const now = new Date();
       alarms.forEach(alarm => {
         if (alarm.enabled && alarm.nextRing <= now) {
+          // Play alarm sound with soundId
           playAlarmSound(alarm.soundId);
           
           toast.success(
@@ -165,7 +167,7 @@ const Index = () => {
               </div>
             </div>,
             {
-              duration: 30000,
+              duration: 3000, // Changed to 3 seconds
             }
           );
           
@@ -183,19 +185,23 @@ const Index = () => {
   return (
     <div className="min-h-screen p-4 bg-background">
       <div className="max-w-md mx-auto">
-        <div className="flex flex-col items-center mb-6 relative">
-          <Button 
-            variant="outline" 
-            onClick={user ? handleLogout : handleLogin}
-            className="absolute right-0 top-0"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            {user ? "Logout" : "Login"}
-          </Button>
+        <div className="flex justify-between items-center mb-6 relative">
+          <div className="w-1/3"></div> {/* Left spacer */}
           
-          <h1 className="text-4xl font-bold flex items-center gap-2 mx-auto">
+          <h1 className="text-4xl font-bold flex items-center gap-2 w-1/3 justify-center">
             <Bell className="h-8 w-8" /> Alarms
           </h1>
+          
+          <div className="w-1/3 flex justify-end"> {/* Right aligned content */}
+            <Button 
+              variant="outline" 
+              onClick={user ? handleLogout : handleLogin}
+              className="ml-auto"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              {user ? "Logout" : "Login"}
+            </Button>
+          </div>
         </div>
 
         <AlarmList 
