@@ -83,9 +83,14 @@ const Index = () => {
         nextRing: alarm.nextRing.toISOString(),
       }));
       
+      // Using upsert with the correct table name
       const { error } = await supabase
         .from('user_alarms')
-        .upsert({ user_id: user.id, alarms: alarmsToSave }, { onConflict: 'user_id' });
+        .upsert({ 
+          user_id: user.id, 
+          alarms: alarmsToSave 
+        }, 
+        { onConflict: 'user_id' });
         
       if (error) throw error;
     } catch (error) {
@@ -100,7 +105,7 @@ const Index = () => {
     try {
       const { data, error } = await supabase
         .from('user_alarms')
-        .select('alarms')
+        .select('*')
         .eq('user_id', user.id)
         .single();
         
