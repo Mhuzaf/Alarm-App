@@ -117,8 +117,11 @@ const Index = () => {
       }
       
       if (data && data.alarms) {
+        // Make sure data.alarms is an array before trying to map through it
+        const alarmsData = Array.isArray(data.alarms) ? data.alarms : [];
+        
         // Convert ISO date strings back to Date objects
-        const loadedAlarms = data.alarms.map((alarm: any) => ({
+        const loadedAlarms = alarmsData.map((alarm: any) => ({
           ...alarm,
           nextRing: new Date(alarm.nextRing)
         }));
