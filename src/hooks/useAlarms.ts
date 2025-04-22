@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Alarm, createAlarm } from "@/components/AlarmList";
 import { AlarmFormValues } from "@/components/AlarmForm";
@@ -129,22 +128,13 @@ export const useAlarms = (user: any) => {
         if (alarm.enabled && alarm.nextRing <= now) {
           playAlarmSound(alarm.soundId);
           
-          toast.success(
-            <div className="flex flex-col space-y-2">
-              <div className="flex items-center justify-between">
-                <span>⏰ Alarm! {alarm.label || alarm.time}</span>
-                <button 
-                  className="px-2 py-1 text-sm bg-secondary rounded-md hover:bg-secondary/80"
-                  onClick={() => stopAlarmSound()}
-                >
-                  Stop
-                </button>
-              </div>
-            </div>,
-            {
-              duration: 3000,
+          toast.success("⏰ Alarm! " + (alarm.label || alarm.time), {
+            duration: 3000,
+            action: {
+              label: "Stop",
+              onClick: () => stopAlarmSound()
             }
-          );
+          });
           
           handleEditAlarm(alarm.id);
         }
